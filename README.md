@@ -1,6 +1,6 @@
 <div align="center">
 
-# <img width="64" height="64" alt="tray-32" src="https://github.com/user-attachments/assets/0ae8f836-d52c-44fd-bad2-16c1e5024e48" /> M3tr0VPN
+# <img width="48" height="48" alt="tray-48" src="https://github.com/user-attachments/assets/8b516411-08c2-4c91-91a8-3a147e22ca2c" />M3tr0VPN
 
 **Простой VPN. Серьёзное ядро.**
 
