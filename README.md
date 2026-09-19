@@ -6,10 +6,9 @@
 
 *VPN-клиент на ядре Xray с раздельным туннелированием, которое настраивается в два клика*
 
-[![Windows](https://img.shields.io/badge/Windows-10%2F11%20x64-blue?logo=windows)](#скачать)
-[![Linux](https://img.shields.io/badge/Linux-AppImage-yellow?logo=linux)](#скачать)
-[![Android](https://img.shields.io/badge/Android-Apk-yellow?logo=android)](#скачать)
-
+<a href = 'https://github.com/dm3tr-0/M3tr0VPN/releases'> [![Windows](https://img.shields.io/badge/Windows-10%2F11%20x64-blue?logo=windows)](#скачать) 
+[![Linux](https://img.shields.io/badge/Linux-AppImage-yellow?logo=linux)](#скачать) 
+[![Android](https://img.shields.io/badge/Android-Apk-yellow?logo=android)](#скачать) </a>
 
 </div>
 
