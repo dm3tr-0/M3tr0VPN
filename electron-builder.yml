@@ -1,0 +1,42 @@
+appId: ru.dm3tr0.m3tr0vpn
+productName: M3tr0VPN
+copyright: Copyright (c) 2026 dm3tr0
+
+# Иконка и версия exe — чистым JS без wine (resedit)
+afterPack: ./scripts/after-pack.mjs
+
+directories:
+  output: .release
+  buildResources: build
+
+files:
+  - out/**
+  - package.json
+
+asar: true
+
+# Ядро Xray и иконки кладутся рядом с app.asar (extraResources)
+extraResources:
+  - from: resources/core
+    to: core
+    filter: ["**/*"]
+  - from: resources/icons
+    to: icons
+    filter: ["**/*.png"]
+
+win:
+  target:
+    - target: zip
+      arch: [x64]
+  # собственный патч иконки/версии — after-pack.mjs (resedit, без wine)
+  signAndEditExecutable: false
+  artifactName: ${productName}-${version}-windows-${arch}.${ext}
+
+linux:
+  icon: build/icon.png
+  syncDesktopName: true
+  target:
+    - target: AppImage
+      arch: [x64]
+  category: Network
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}
