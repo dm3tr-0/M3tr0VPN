@@ -10,7 +10,6 @@
 [![Linux](https://img.shields.io/badge/Linux-AppImage-yellow?logo=linux)](#скачать)
 [![Android](https://img.shields.io/badge/Android-Apk-yellow?logo=android)](#скачать)
 
-[Скачать](#скачать-m3tr0vpn) • [Возможности](#-возможности) • [Быстрый старт](#-быстрый-старт) • [FAQ](#-faq)
 
 </div>
 
