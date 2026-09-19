@@ -1,22 +1,17 @@
 <figure data-reveal="mockup" role="img" aria-label="Окно приложения M3tr0VPN: слева меню «Статус», «Туннелирование» и «Настройки», в центре — большая кнопка питания со статусом «Защищено», плитки загрузки, отдачи и сессии, справа — список серверов по подпискам." class="revealed">
         <div class="window-persp">
           <div class="window" aria-hidden="true">
-
-            <!-- титлбар -->
             <div class="titlebar">
               <svg class="logo-svg" viewBox="0 0 48 48"><use href="#m3-logo"></use></svg>
               <p class="title">M3tr0<b>VPN</b><span class="extra">— Amsterdam #1</span></p>
-
               <span class="status-chip">
                 <svg class="icon"><use href="#i-wifi"></use></svg>
                 <span class="txt">Защищено</span>
               </span>
-
               <span class="lang">
                 <span class="ru">RU</span>
                 <span class="en">EN</span>
               </span>
-
               <span class="win-btns">
                 <span><svg class="icon"><use href="#i-minus"></use></svg></span>
                 <span><svg class="icon small"><use href="#i-copy"></use></svg></span>
@@ -28,7 +23,6 @@
                 <span class="red"></span>
               </span>
             </div>
-
             <!-- тело окна -->
             <div class="window-body">
               <!-- сайдбар -->
@@ -55,13 +49,11 @@
                     </span>
                   </li>
                 </ul>
-
                 <div class="core-box">
                   <p><span class="dot"></span>xray-core 26.3.27</p>
                   <p>ядро запущено</p>
                 </div>
               </nav>
-
               <!-- центр -->
               <div class="center">
                 <div class="top">
@@ -71,14 +63,12 @@
                       <svg class="icon"><use href="#i-power"></use></svg>
                     </span>
                   </span>
-
                   <span class="status-block">
                     <span class="state">Защищено</span>
                     <span class="route">через <b>Amsterdam #1</b> · <i>VLESS</i> · Системный прокси</span>
                     <span class="hint">Готово · трафик шифруется</span>
                   </span>
                 </div>
-
                 <!-- плитки -->
                 <div class="tiles">
                   <div class="tile">
@@ -103,7 +93,6 @@
                     <p class="val">01:42:05</p>
                   </div>
                 </div>
-
                 <!-- мини-график скорости -->
                 <div class="chart-box">
                   <span class="head">
@@ -122,7 +111,6 @@
                     <path d="M0,44 C25,43 40,40 60,41 S100,44 120,42 S160,36 180,38 S220,42 245,39 S275,42 300,38" stroke="#4ae3ff" stroke-opacity="0.75" stroke-width="1.3" fill="none"></path>
                   </svg>
                 </div>
-
                 <!-- мини-журнал ядра -->
                 <div class="core-log">
                   <p><span class="time">[21:04:12]</span><span class="line-ok">xray-core 26.3.27 · старт</span></p>
@@ -130,14 +118,12 @@
                   <p class="hide-sm"><span class="time">[21:04:14]</span><span class="line-dim">vless+reality → nl1.dm3tr0.ru:443 · handshake ok</span></p>
                 </div>
               </div>
-
               <!-- правая панель: подписки -->
               <aside class="right-panel">
                 <div class="head">
                   <span class="t">Подписки</span>
                   <span class="count"><svg class="icon"><use href="#i-radar"></use></svg>6</span>
                 </div>
-
                 <div class="list">
                   <div class="group">
                     <p class="g-name">M3tr0 Premium</p>
@@ -179,7 +165,6 @@
                       </li>
                     </ul>
                   </div>
-
                   <div class="group">
                     <p class="g-name">M3tr0 Free</p>
                     <ul>
@@ -202,7 +187,6 @@
                     </ul>
                   </div>
                 </div>
-
                 <div class="add">
                   <span><svg class="icon"><use href="#i-plus"></use></svg>Добавить сервер</span>
                 </div>
@@ -210,7 +194,6 @@
             </div>
           </div>
         </div>
-
         <figcaption class="figcaption">
           <span class="slash" aria-hidden="true">//</span>
           три вкладки
