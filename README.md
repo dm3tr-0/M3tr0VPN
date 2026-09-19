@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ M3tr0VPN
+# M3tr0VPN
 
 **Простой VPN. Серьёзное ядро.**
 
