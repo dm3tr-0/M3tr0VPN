@@ -8,7 +8,7 @@
 
 [![Windows](https://img.shields.io/badge/Windows-10%2F11%20x64-blue?logo=windows)](#скачать)
 [![Linux](https://img.shields.io/badge/Linux-AppImage-yellow?logo=linux)](#скачать)
-[![Android](https://img.shields.io/badge/Linux-Apk-yellow?logo=android)](#скачать)
+[![Android](https://img.shields.io/badge/Android-Apk-yellow?logo=android)](#скачать)
 
 [Скачать](#скачать-m3tr0vpn) • [Возможности](#-возможности) • [Быстрый старт](#-быстрый-старт) • [FAQ](#-faq)
 
