@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M3tr0VPN — VPN-клиент для Windows</title>
+<meta name="description" content="M3tr0VPN — VPN-клиент на базе Xray-core с TUN-режимом: весь трафик через VPN по умолчанию, простое раздельное туннелирование по сайтам и приложениям, RU/EN, тёмно-зелёная тема.">
+<meta property="og:title" content="M3tr0VPN — VPN-клиент">
+<meta property="og:description" content="Тот же Xray-core, что в v2rayN. Но настройка — за два клика, на русском.">
+<meta property="og:site_name" content="M3tr0VPN">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#070c0a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='3.5' y='3.5' width='41' height='41' rx='11' fill='%230c1410' stroke='%2300ff88' stroke-width='2'/%3E%3Cpath d='M12 30V17.5L18 25L24 17.5V30' stroke='%2300ff88' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ctext x='26.5' y='30' font-size='16' font-weight='700' fill='%23eafff3' font-family='monospace'%3E3%3C/text%3E%3Cpath d='M10 36H38' stroke='%2300cc6a' stroke-opacity='0.4' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='13' cy='36' r='2.1' fill='%2300ff88'/%3E%3C/svg%3E">
+<!--
+  ============================================================
+  M3tr0VPN — автономная версия сайта.
+  Один файл: HTML + CSS + JS, без сборки и зависимостей.
+  Точная копия лендинга (Next.js-версии) в стиле Incy / dm3tr0.ru.
+  ============================================================
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+
+/* ============================================================
+   1. Дизайн-токены (1:1 с темой Incy: фон #070c0a · поверхности
+   #0c1410 · неон #00cc6a)
+   ============================================================ */
+:root {
+  --background: oklch(0.155 0.014 168);
+  --foreground: oklch(0.93 0.012 155);
+  --card: oklch(0.185 0.016 168);
+  --card-foreground: oklch(0.93 0.012 155);
+  --primary: oklch(0.77 0.185 158);
+  --primary-foreground: oklch(0.14 0.025 168);
+  --muted: oklch(0.215 0.015 168);
+  --muted-foreground: oklch(0.63 0.018 160);
+  --accent: oklch(0.255 0.024 168);
+  --border: oklch(0.275 0.02 168);
+  --input: oklch(0.245 0.02 168);
+  --ring: oklch(0.77 0.185 158);
+  --chart-2: oklch(0.8 0.12 190);
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ============================================================
+   2. База
+   ============================================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; border-color: var(--border); }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--foreground);
+  background-color: var(--background);
+  background-image:
+    radial-gradient(1100px 480px at 50% -120px, oklch(0.77 0.185 158 / 9%), transparent 70%),
+    linear-gradient(oklch(0.77 0.185 158 / 2.5%) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.77 0.185 158 / 2.5%) 1px, transparent 1px);
+  background-size: 100% 100%, 44px 44px, 44px 44px;
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+main { flex: 1; width: 100%; }
+img, svg { display: block; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; }
+::selection { background: oklch(0.77 0.185 158 / 30%); color: oklch(0.98 0.01 155); }
+
+* { scrollbar-width: thin; scrollbar-color: oklch(0.34 0.03 168) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: oklch(0.32 0.03 168); border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background: oklch(0.45 0.05 168); }
+
+/* ============================================================
+   3. Утилиты M3tr0VPN
+   ============================================================ */
+.container { width: 100%; max-width: 1152px; margin-inline: auto; padding-inline: 16px; }
+@media (min-width: 640px) { .container { padding-inline: 24px; } }
+.mono { font-family: var(--font-mono); }
+.terminal-chip { font-family: var(--font-mono); letter-spacing: 0.02em; }
+.text-glow {
+  text-shadow: 0 0 14px oklch(0.77 0.185 158 / 55%), 0 0 40px oklch(0.77 0.185 158 / 25%);
+}
+.glow-sm { box-shadow: 0 0 16px oklch(0.77 0.185 158 / 22%); }
+.glow-md { box-shadow: 0 0 24px oklch(0.77 0.185 158 / 30%), inset 0 0 18px oklch(0.77 0.185 158 / 8%); }
+.glow-lg { box-shadow: 0 0 44px oklch(0.77 0.185 158 / 38%), 0 0 120px oklch(0.77 0.185 158 / 16%), inset 0 0 26px oklch(0.77 0.185 158 / 10%); }
+.card-m3tr0 {
+  position: relative;
+  border: 1px solid oklch(0.3 0.025 168);
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+.card-m3tr0:hover {
+  border-color: oklch(0.55 0.12 160 / 60%);
+  box-shadow: 0 0 22px oklch(0.77 0.185 158 / 12%);
+}
+
+.icon {
+  width: 1em; height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   4. Кнопки
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; white-space: nowrap;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 14px; font-weight: 500; line-height: 1;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 200ms ease;
+  outline: none;
+}
+.btn:focus-visible { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.77 0.185 158 / 50%); }
+.btn .icon { pointer-events: none; }
+.btn-primary { background: var(--primary); color: var(--primary-foreground); }
+.btn-primary:hover { background: oklch(0.82 0.19 158); }
+.btn-outline { border-color: var(--input); background: var(--background); color: var(--foreground); }
+.btn-outline:hover { background: var(--accent); }
+.btn-ghost { background: transparent; color: var(--foreground); }
+.btn-ghost:hover { background: var(--accent); }
+
+/* ============================================================
+   5. Шапка
+   ============================================================ */
+.site-header {
+  position: sticky; top: 0; z-index: 50;
+  width: 100%;
+  border-bottom: 1px solid oklch(0.275 0.02 168 / 60%);
+  background: oklch(0.155 0.014 168 / 70%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.site-header .container {
+  height: 64px;
+  display: flex; align-items: center; gap: 8px;
+}
+.brand {
+  display: flex; min-height: 44px; align-items: center; gap: 10px;
+  border-radius: 8px; padding-right: 8px;
+  outline: none;
+}
+.brand:focus-visible { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.77 0.185 158 / 50%); }
+.brand .logo-svg {
+  width: 32px; height: 32px;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.4));
+}
+.brand .wordmark {
+  font-family: var(--font-mono); font-size: 14px; font-weight: 700; letter-spacing: 0.05em;
+}
+.brand .wordmark b { color: var(--primary); font-weight: 700; }
+
+.header-nav { display: none; align-items: center; gap: 4px; margin-left: auto; }
+@media (min-width: 768px) { .header-nav { display: flex; } }
+.header-nav a {
+  display: flex; min-height: 44px; align-items: center;
+  border-radius: 8px; padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--muted-foreground);
+  transition: background-color 150ms ease, color 150ms ease;
+  outline: none;
+}
+.header-nav a:focus-visible { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.77 0.185 158 / 50%); }
+.header-nav a:hover { background: oklch(0.77 0.185 158 / 5%); color: var(--primary); }
+.header-nav a .prefix { margin-right: 6px; color: oklch(0.77 0.185 158 / 50%); }
+
+.github-btn {
+  margin-left: auto;
+  display: flex; min-height: 44px; align-items: center; gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: oklch(0.185 0.016 168 / 60%);
+  padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  color: oklch(0.93 0.012 155 / 90%);
+  transition: border-color 150ms ease, color 150ms ease, box-shadow 200ms ease;
+  outline: none;
+}
+@media (min-width: 768px) { .github-btn { margin-left: 12px; } }
+.github-btn:hover {
+  border-color: oklch(0.77 0.185 158 / 40%);
+  color: var(--primary);
+  box-shadow: 0 0 16px oklch(0.77 0.185 158 / 22%);
+}
+.github-btn:focus-visible { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.77 0.185 158 / 50%); }
+.github-btn .label { display: none; }
+@media (min-width: 640px) { .github-btn .label { display: inline; } }
+.github-btn .icon { width: 16px; height: 16px; }
+
+/* ============================================================
+   6. Hero
+   ============================================================ */
+.hero { position: relative; overflow: hidden; padding: 56px 0 48px; }
+@media (min-width: 640px) { .hero { padding: 80px 0 64px; } }
+@media (min-width: 1024px) { .hero { padding-top: 96px; } }
+.hero .neon-blob {
+  position: absolute; left: 50%; top: 0;
+  width: min(900px, 100vw); height: 420px;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: oklch(0.77 0.185 158 / 10%);
+  filter: blur(120px);
+  pointer-events: none;
+}
+.hero .inner {
+  position: relative;
+  max-width: 896px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+}
+.hero .term-badge {
+  display: inline-flex; align-items: center;
+  border-radius: 9999px;
+  border: 1px solid oklch(0.77 0.185 158 / 30%);
+  background: oklch(0.77 0.185 158 / 5%);
+  padding: 8px 16px;
+  font-family: var(--font-mono); font-size: 12px;
+  color: oklch(0.77 0.185 158 / 90%);
+}
+.hero .term-badge .prompt { margin-right: 8px; color: var(--muted-foreground); }
+.hero .cursor {
+  margin-left: 4px; display: inline-block; color: var(--primary);
+  animation: blink 1.1s steps(1) infinite;
+}
+.hero h1 {
+  margin-top: 28px;
+  font-size: 36px; line-height: 1.25; font-weight: 700;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+@media (min-width: 640px) { .hero h1 { font-size: 48px; } }
+@media (min-width: 1024px) { .hero h1 { font-size: 60px; } }
+.hero h1 .accent { color: var(--primary); text-shadow: 0 0 14px oklch(0.77 0.185 158 / 55%), 0 0 40px oklch(0.77 0.185 158 / 25%); }
+.hero .sub {
+  margin-top: 20px; max-width: 672px;
+  font-size: 16px; line-height: 1.625;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+@media (min-width: 640px) { .hero .sub { font-size: 18px; } }
+.hero .cta {
+  margin-top: 32px;
+  display: flex; width: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+}
+@media (min-width: 640px) { .hero .cta { width: auto; flex-direction: row; } }
+.hero .cta .btn { height: 48px; width: 100%; border-radius: 12px; }
+@media (min-width: 640px) { .hero .cta .btn { width: auto; } }
+.hero .btn-windows { padding: 0 28px; font-size: 16px; font-weight: 600; box-shadow: 0 0 24px oklch(0.77 0.185 158 / 30%), inset 0 0 18px oklch(0.77 0.185 158 / 8%); }
+.hero .btn-windows:hover { box-shadow: 0 0 44px oklch(0.77 0.185 158 / 38%), 0 0 120px oklch(0.77 0.185 158 / 16%), inset 0 0 26px oklch(0.77 0.185 158 / 10%); }
+.hero .btn-windows .icon { width: 20px; height: 20px; }
+.hero .btn-linux { padding: 0 24px; font-size: 14px; font-weight: 500; }
+.hero .btn-source { padding: 0 24px; font-size: 14px; font-weight: 500; color: var(--muted-foreground); }
+.hero .btn-source:hover { background: transparent; color: var(--foreground); }
+.hero .btn-source .icon { width: 16px; height: 16px; }
+.hero .chips {
+  margin-top: 24px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+}
+.hero .chips li {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: oklch(0.185 0.016 168 / 60%);
+  padding: 6px 12px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--muted-foreground);
+}
+.hero .chips .icon { width: 14px; height: 14px; color: oklch(0.77 0.185 158 / 80%); }
+.hero .smartscreen {
+  margin-top: 24px;
+  max-width: 448px;
+  display: flex; align-items: flex-start; justify-content: center; gap: 8px;
+  text-align: left;
+  font-size: 12px; line-height: 1.625;
+  color: oklch(0.63 0.018 160 / 80%);
+}
+.hero .smartscreen .icon { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; color: rgba(251, 191, 36, 0.8); }
+
+/* ============================================================
+   7. Мокап окна приложения
+   ============================================================ */
+.app-mockup { padding-bottom: 64px; }
+@media (min-width: 640px) { .app-mockup { padding-bottom: 96px; } }
+.window-persp { perspective: 1800px; }
+.window {
+  position: relative;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid oklch(0.275 0.02 168 / 80%);
+  background: oklch(0.185 0.016 168 / 80%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 40px 90px -20px rgba(0, 0, 0, 0.75), 0 0 70px -12px rgba(0, 204, 106, 0.22);
+}
+@media (min-width: 640px) { .window { height: 560px; } }
+@media (min-width: 1024px) {
+  .window { transform: rotateX(5deg); transform-origin: 50% 0; transition: transform 700ms ease; }
+  .window-persp:hover .window { transform: rotateX(0deg); }
+}
+
+/* --- титлбар --- */
+.titlebar {
+  display: flex; height: 44px; flex-shrink: 0; align-items: center; gap: 10px;
+  border-bottom: 1px solid oklch(0.275 0.02 168 / 70%);
+  background: oklch(0.155 0.014 168 / 70%);
+  padding-left: 12px; padding-right: 6px;
+  user-select: none;
+}
+.titlebar .logo-svg { width: 20px; height: 20px; }
+.titlebar .title {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+}
+.titlebar .title b { color: var(--primary); font-weight: 600; }
+.titlebar .title .extra { display: none; margin-left: 8px; font-weight: 400; color: var(--muted-foreground); }
+@media (min-width: 640px) { .titlebar .title .extra { display: inline; } }
+.titlebar .status-chip {
+  margin-left: auto; flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid oklch(0.77 0.185 158 / 40%);
+  background: oklch(0.77 0.185 158 / 10%);
+  padding: 2px 8px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--primary);
+}
+.titlebar .status-chip .icon { width: 12px; height: 12px; }
+.titlebar .status-chip .txt { display: none; }
+@media (min-width: 640px) { .titlebar .status-chip .txt { display: inline; } }
+.titlebar .lang {
+  display: flex; flex-shrink: 0; overflow: hidden;
+  border-radius: 8px; border: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 10px; line-height: 1;
+}
+.titlebar .lang .ru { background: oklch(0.77 0.185 158 / 15%); padding: 6px; font-weight: 600; color: var(--primary); }
+.titlebar .lang .en { padding: 6px; color: var(--muted-foreground); }
+.titlebar .win-btns { display: none; flex-shrink: 0; align-items: stretch; }
+@media (min-width: 640px) { .titlebar .win-btns { display: flex; } }
+.titlebar .win-btns span {
+  display: flex; width: 44px; height: 44px; align-items: center; justify-content: center;
+  color: var(--muted-foreground);
+}
+.titlebar .win-btns .icon { width: 16px; height: 16px; }
+.titlebar .win-btns .icon.small { width: 12px; height: 12px; transform: scaleX(-1); }
+.titlebar .traffic { display: flex; flex-shrink: 0; align-items: center; gap: 6px; padding-right: 6px; }
+@media (min-width: 640px) { .titlebar .traffic { display: none; } }
+.titlebar .traffic span { width: 10px; height: 10px; border-radius: 9999px; }
+.titlebar .traffic .amber { background: rgba(251, 191, 36, 0.7); }
+.titlebar .traffic .green { background: oklch(0.77 0.185 158 / 70%); }
+.titlebar .traffic .red { background: rgba(248, 113, 113, 0.7); }
+
+/* --- тело окна --- */
+.window-body { display: flex; min-height: 0; flex: 1; }
+
+/* сайдбар */
+.sidebar {
+  display: none;
+  width: 176px; flex-shrink: 0; flex-direction: column;
+  border-right: 1px solid oklch(0.275 0.02 168 / 70%);
+  background: oklch(0.155 0.014 168 / 40%);
+  padding: 12px;
+}
+@media (min-width: 768px) { .sidebar { display: flex; } }
+.sidebar .dir {
+  margin-bottom: 16px; padding: 4px 8px 0;
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em;
+  color: var(--muted-foreground);
+}
+.sidebar ul { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.sidebar ul a, .sidebar ul span {
+  display: flex; width: 100%; align-items: center; gap: 12px;
+  border-radius: 12px; padding: 10px 12px;
+  font-size: 14px; font-weight: 500; text-align: left;
+  color: var(--muted-foreground);
+}
+.sidebar ul .icon { width: 18px; height: 18px; }
+.sidebar ul .active { background: oklch(0.77 0.185 158 / 10%); color: var(--primary); }
+.sidebar ul .active .dot { margin-left: auto; width: 6px; height: 6px; border-radius: 9999px; background: var(--primary); }
+.sidebar .core-box {
+  border-radius: 12px;
+  border: 1px solid oklch(0.275 0.02 168 / 60%);
+  background: oklch(0.155 0.014 168 / 60%);
+  padding: 12px;
+}
+.sidebar .core-box p {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--muted-foreground);
+}
+.sidebar .core-box .dot {
+  width: 6px; height: 6px; border-radius: 9999px;
+  background: var(--primary);
+  animation: soft-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.sidebar .core-box p + p { margin-top: 4px; color: oklch(0.63 0.018 160 / 70%); }
+
+/* центр */
+.center {
+  display: flex; min-width: 0; flex: 1; flex-direction: column;
+  padding: 16px;
+}
+@media (min-width: 640px) { .center { padding: 20px; } }
+.center .top { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+@media (min-width: 640px) { .center .top { flex-direction: row; gap: 24px; } }
+.power-wrap { position: relative; display: block; flex-shrink: 0; }
+.power-ring {
+  position: absolute; inset: 0; margin: auto;
+  width: 96px; height: 96px;
+  border-radius: 9999px;
+  border: 2px solid oklch(0.77 0.185 158 / 50%);
+  animation: pulse-ring 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+@media (min-width: 640px) { .power-ring { width: 112px; height: 112px; } }
+.power-btn {
+  position: relative;
+  display: flex; width: 96px; height: 96px; align-items: center; justify-content: center;
+  border-radius: 9999px;
+  border: 4px solid var(--primary);
+  background: oklch(0.77 0.185 158 / 15%);
+  color: var(--primary);
+  box-shadow: 0 0 24px oklch(0.77 0.185 158 / 30%), inset 0 0 18px oklch(0.77 0.185 158 / 8%);
+}
+@media (min-width: 640px) { .power-btn { width: 112px; height: 112px; } }
+.power-btn .icon {
+  width: 40px; height: 40px; stroke-width: 1.6;
+  filter: drop-shadow(0 0 14px rgba(0, 255, 136, 0.55));
+}
+@media (min-width: 640px) { .power-btn .icon { width: 48px; height: 48px; } }
+.status-block { min-width: 0; flex: 1; text-align: center; }
+@media (min-width: 640px) { .status-block { text-align: left; } }
+.status-block .state {
+  display: block;
+  font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--primary);
+  text-shadow: 0 0 14px oklch(0.77 0.185 158 / 55%), 0 0 40px oklch(0.77 0.185 158 / 25%);
+}
+.status-block .route {
+  display: block; margin-top: 6px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--muted-foreground);
+}
+.status-block .route b { color: var(--foreground); font-weight: 400; }
+.status-block .route i { font-style: normal; color: oklch(0.77 0.185 158 / 90%); }
+.status-block .hint {
+  display: block; margin-top: 4px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: oklch(0.77 0.185 158 / 90%);
+}
+.tiles { margin-top: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (min-width: 640px) { .tiles { gap: 12px; } }
+.tile {
+  border-radius: 12px;
+  border: 1px solid oklch(0.275 0.02 168 / 70%);
+  background: oklch(0.155 0.014 168 / 50%);
+  padding: 10px;
+}
+@media (min-width: 640px) { .tile { padding: 12px; } }
+.tile .head { display: flex; align-items: flex-start; gap: 6px; color: var(--muted-foreground); }
+.tile .head .icon { width: 14px; height: 14px; margin-top: 2px; color: var(--primary); }
+.tile .head .icon.accent { color: var(--chart-2); }
+.tile .head span {
+  font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.25;
+}
+@media (min-width: 640px) { .tile .head span { font-size: 10px; } }
+.tile .val {
+  margin-top: 6px;
+  font-family: var(--font-mono); font-size: 16px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+@media (min-width: 640px) { .tile .val { font-size: 18px; } }
+.tile .val small {
+  margin-left: 4px;
+  font-family: var(--font-mono); font-size: 9px; font-weight: 400;
+  color: var(--muted-foreground);
+}
+.chart-box {
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid oklch(0.275 0.02 168 / 70%);
+  background: oklch(0.155 0.014 168 / 50%);
+  padding: 12px;
+}
+.chart-box .head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted-foreground);
+}
+.chart-box .head .legend { text-transform: none; letter-spacing: normal; }
+.chart-box .head .down { color: var(--primary); }
+.chart-box .head .up { color: var(--chart-2); }
+.chart-box svg { margin-top: 8px; height: 48px; width: 100%; }
+@media (min-width: 640px) { .chart-box svg { height: 56px; } }
+.core-log {
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid oklch(0.275 0.02 168 / 70%);
+  background: oklch(0.155 0.014 168 / 60%);
+  padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 10px; line-height: 1.625;
+}
+.core-log p { display: flex; gap: 8px; }
+.core-log .time { flex-shrink: 0; color: oklch(0.63 0.018 160 / 60%); }
+.core-log .line-ok { color: var(--primary); }
+.core-log .line-dim { color: oklch(0.93 0.012 155 / 80%); }
+.core-log .hide-sm { display: none; }
+@media (min-width: 640px) { .core-log .hide-sm { display: flex; } }
+
+/* правая панель */
+.right-panel {
+  display: none;
+  width: 256px; flex-shrink: 0; flex-direction: column;
+  overflow: hidden;
+  border-left: 1px solid oklch(0.275 0.02 168 / 70%);
+  background: oklch(0.155 0.014 168 / 40%);
+}
+@media (min-width: 1024px) { .right-panel { display: flex; } }
+.right-panel .head {
+  display: flex; flex-shrink: 0; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid oklch(0.275 0.02 168 / 60%);
+  padding: 10px 16px;
+}
+.right-panel .head .t {
+  font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted-foreground);
+}
+.right-panel .head .count {
+  display: flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--muted-foreground);
+}
+.right-panel .head .icon { width: 12px; height: 12px; }
+.right-panel .list { min-height: 0; flex: 1; overflow: hidden; padding: 12px; display: flex; flex-direction: column; gap: 16px; }
+.right-panel .group .g-name {
+  padding: 0 4px;
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+.right-panel .group ul { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.right-panel .server {
+  display: flex; align-items: center; gap: 10px;
+  border-radius: 12px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  background: oklch(0.155 0.014 168 / 40%);
+}
+.right-panel .server.current { border-color: oklch(0.77 0.185 158 / 40%); background: oklch(0.77 0.185 158 / 10%); }
+.country-chip {
+  display: flex; width: 28px; height: 28px; flex-shrink: 0; align-items: center; justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: oklch(0.215 0.015 168 / 60%);
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+  color: oklch(0.93 0.012 155 / 80%);
+}
+.right-panel .server .info { min-width: 0; flex: 1; }
+.right-panel .server .row { display: flex; align-items: center; gap: 6px; }
+.right-panel .server .name {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 12px; font-weight: 500;
+  color: var(--foreground);
+}
+.right-panel .server .check { width: 12px; height: 12px; flex-shrink: 0; color: var(--primary); }
+.right-panel .server .ping {
+  display: block;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--muted-foreground);
+}
+.protocol-chip {
+  display: inline-flex; flex-shrink: 0; align-items: center;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.protocol-chip.vless { border-color: oklch(0.77 0.185 158 / 40%); background: oklch(0.77 0.185 158 / 10%); color: var(--primary); }
+.protocol-chip.vmess { border-color: rgba(52, 211, 153, 0.3); background: rgba(52, 211, 153, 0.1); color: #6ee7b7; }
+.protocol-chip.trojan { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.1); color: #fcd34d; }
+.protocol-chip.ss { border-color: rgba(34, 211, 238, 0.3); background: rgba(34, 211, 238, 0.1); color: #67e8f9; }
+.right-panel .add {
+  flex-shrink: 0;
+  border-top: 1px solid oklch(0.275 0.02 168 / 60%);
+  padding: 12px;
+}
+.right-panel .add span {
+  display: flex; min-height: 36px; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.right-panel .add .icon { width: 14px; height: 14px; }
+.figcaption {
+  margin-top: 24px; text-align: center;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--muted-foreground);
+}
+.figcaption .slash { margin-right: 6px; color: oklch(0.77 0.185 158 / 60%); }
+
+/* ============================================================
+   8. Заголовки секций
+   ============================================================ */
+.section { scroll-margin-top: 96px; }
+.section-heading { max-width: 672px; margin-inline: auto; text-align: center; }
+.section-heading .kicker {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.22em;
+  color: oklch(0.77 0.185 158 / 90%);
+}
+.section-heading h2 {
+  margin-top: 12px;
+  font-size: 30px; line-height: 1.2; font-weight: 700; letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+@media (min-width: 640px) { .section-heading h2 { font-size: 36px; } }
+.section-heading .sub { margin-top: 12px; color: var(--muted-foreground); text-wrap: pretty; }
+
+/* ============================================================
+   9. Возможности
+   ============================================================ */
+.features { padding-block: 64px; }
+@media (min-width: 640px) { .features { padding-block: 96px; } }
+.features .grid { margin-top: 40px; display: grid; gap: 16px; }
+@media (min-width: 640px) { .features .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .features .grid { grid-template-columns: repeat(3, 1fr); } }
+.feature-card { display: flex; flex-direction: column; border-radius: 16px; background: oklch(0.185 0.016 168 / 50%); padding: 20px; }
+.feature-card .icon-box {
+  display: flex; width: 40px; height: 40px; align-items: center; justify-content: center;
+  border-radius: 10px;
+  border: 1px solid oklch(0.77 0.185 158 / 30%);
+  background: oklch(0.77 0.185 158 / 10%);
+  color: var(--primary);
+}
+.feature-card .icon-box .icon { width: 20px; height: 20px; }
+.feature-card h3 { margin-top: 16px; font-size: 16px; font-weight: 600; line-height: 1.375; }
+.feature-card p { margin-top: 8px; flex: 1; font-size: 14px; line-height: 1.625; color: var(--muted-foreground); }
+.feature-card .code {
+  margin-top: 16px;
+  border-radius: 10px;
+  border: 1px solid oklch(0.275 0.02 168 / 60%);
+  background: oklch(0.155 0.014 168 / 60%);
+  padding: 6px 10px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.02em;
+  color: oklch(0.77 0.185 158 / 85%);
+}
+
+/* ============================================================
+   10. Быстрый старт
+   ============================================================ */
+.quick-start { padding-bottom: 64px; }
+@media (min-width: 640px) { .quick-start { padding-bottom: 96px; } }
+.quick-start ol { margin-top: 40px; display: grid; gap: 16px; }
+@media (min-width: 768px) { .quick-start ol { grid-template-columns: repeat(3, 1fr); } }
+.step-card { position: relative; display: flex; flex-direction: column; border-radius: 16px; background: oklch(0.185 0.016 168 / 50%); padding: 20px; }
+.step-card .head { display: flex; align-items: center; gap: 12px; }
+.step-card .num {
+  border-radius: 10px;
+  border: 1px solid oklch(0.77 0.185 158 / 30%);
+  background: oklch(0.77 0.185 158 / 10%);
+  padding: 4px 8px;
+  font-family: var(--font-mono); font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--primary);
+}
+.step-card .icon-box {
+  display: flex; width: 36px; height: 36px; align-items: center; justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: oklch(0.155 0.014 168 / 60%);
+  color: var(--muted-foreground);
+}
+.step-card .icon-box .icon { width: 18px; height: 18px; }
+.step-card h3 { margin-top: 16px; font-size: 16px; font-weight: 600; }
+.step-card p { margin-top: 8px; font-size: 14px; line-height: 1.625; color: var(--muted-foreground); }
+.step-card .connector {
+  display: none;
+  position: absolute; right: -14px; top: 50%;
+  width: 28px; height: 0;
+  border-top: 1px dashed oklch(0.77 0.185 158 / 40%);
+}
+@media (min-width: 768px) { .step-card .connector { display: block; } }
+
+/* ============================================================
+   11. Скачать
+   ============================================================ */
+.downloads { padding-bottom: 64px; }
+@media (min-width: 640px) { .downloads { padding-bottom: 96px; } }
+.downloads .grid { margin-top: 40px; display: grid; gap: 16px; }
+@media (min-width: 640px) { .downloads .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .downloads .grid { grid-template-columns: repeat(3, 1fr); } }
+.dl-card { position: relative; display: flex; flex-direction: column; border-radius: 16px; background: oklch(0.185 0.016 168 / 50%); padding: 20px; }
+.dl-card.featured { border-color: oklch(0.77 0.185 158 / 40%); box-shadow: 0 0 24px oklch(0.77 0.185 158 / 30%), inset 0 0 18px oklch(0.77 0.185 158 / 8%); }
+.dl-card .badge {
+  position: absolute; top: -10px; left: 20px;
+  border-radius: 9999px;
+  border: 1px solid oklch(0.77 0.185 158 / 50%);
+  background: var(--background);
+  padding: 2px 10px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--primary);
+}
+.dl-card .head { display: flex; align-items: center; gap: 12px; }
+.dl-card .icon-box {
+  display: flex; width: 40px; height: 40px; align-items: center; justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: oklch(0.155 0.014 168 / 60%);
+  color: var(--muted-foreground);
+}
+.dl-card.featured .icon-box { border-color: oklch(0.77 0.185 158 / 40%); background: oklch(0.77 0.185 158 / 10%); color: var(--primary); }
+.dl-card .icon-box .icon { width: 20px; height: 20px; }
+.dl-card h3 { font-size: 16px; font-weight: 600; }
+.dl-card .file {
+  margin-top: 16px;
+  overflow-wrap: break-word; word-break: break-all;
+  border-radius: 10px;
+  border: 1px solid oklch(0.275 0.02 168 / 60%);
+  background: oklch(0.155 0.014 168 / 60%);
+  padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em;
+  color: oklch(0.93 0.012 155 / 90%);
+}
+.dl-card .note { margin-top: 12px; flex: 1; font-size: 14px; color: var(--muted-foreground); }
+.dl-card .btn { margin-top: 16px; height: 44px; width: 100%; border-radius: 12px; font-weight: 500; }
+.dl-card.featured .btn { font-weight: 600; }
+.dl-card.featured .btn:hover { box-shadow: 0 0 16px oklch(0.77 0.185 158 / 22%); }
+.dl-card .btn .icon { width: 16px; height: 16px; }
+.downloads .note {
+  margin: 32px auto 0; max-width: 672px;
+  display: flex; align-items: flex-start; justify-content: center; gap: 10px;
+  border-radius: 16px;
+  border: 1px solid oklch(0.275 0.02 168 / 60%);
+  background: oklch(0.185 0.016 168 / 40%);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px; line-height: 1.625;
+  color: var(--muted-foreground);
+}
+.downloads .note .icon { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; color: oklch(0.77 0.185 158 / 70%); }
+
+/* ============================================================
+   12. FAQ
+   ============================================================ */
+.faq { padding-bottom: 64px; }
+@media (min-width: 640px) { .faq { padding-bottom: 96px; } }
+.faq .inner { max-width: 768px; }
+.faq-list { margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
+.faq-item { border-radius: 16px; border-color: oklch(0.275 0.02 168 / 70%); background: oklch(0.185 0.016 168 / 50%); padding-inline: 16px; transition: border-color 200ms ease, box-shadow 200ms ease; }
+.faq-item.open { border-color: oklch(0.77 0.185 158 / 30%); box-shadow: 0 0 22px oklch(0.77 0.185 158 / 10%); }
+.faq-trigger {
+  display: flex; width: 100%; align-items: center;
+  padding-block: 16px;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+  color: var(--foreground); text-align: left;
+  outline: none;
+}
+.faq-trigger:focus-visible { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.77 0.185 158 / 50%); border-radius: 8px; }
+.faq-trigger .q { margin-right: 4px; color: oklch(0.77 0.185 158 / 60%); }
+.faq-trigger .chevron {
+  margin-left: auto;
+  width: 16px; height: 16px;
+  color: var(--muted-foreground);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+.faq-item.open .chevron { transform: rotate(180deg); }
+.faq-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 250ms ease; }
+.faq-item.open .faq-panel { grid-template-rows: 1fr; }
+.faq-panel > div { overflow: hidden; }
+.faq-panel p { padding-bottom: 16px; font-size: 14px; line-height: 1.625; color: var(--muted-foreground); }
+
+/* ============================================================
+   13. Футер
+   ============================================================ */
+.site-footer { margin-top: auto; border-top: 1px solid oklch(0.275 0.02 168 / 60%); background: oklch(0.155 0.014 168 / 60%); }
+.site-footer .top {
+  display: flex; width: 100%; max-width: 1152px; margin-inline: auto;
+  flex-direction: column; gap: 40px;
+  padding: 48px 16px;
+}
+@media (min-width: 768px) { .site-footer .top { flex-direction: row; align-items: flex-start; justify-content: space-between; padding-inline: 24px; } }
+.site-footer .brand-row { display: flex; align-items: center; gap: 10px; }
+.site-footer .logo-svg { width: 32px; height: 32px; }
+.site-footer .wordmark { font-family: var(--font-mono); font-size: 14px; font-weight: 700; letter-spacing: 0.05em; }
+.site-footer .wordmark b { color: var(--primary); font-weight: 700; }
+.site-footer .site-link {
+  margin-top: 12px;
+  display: inline-flex; min-height: 44px; align-items: center;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em;
+  color: oklch(0.77 0.185 158 / 90%);
+  transition: color 150ms ease;
+  outline: none;
+}
+.site-footer .site-link:hover { color: var(--primary); }
+.site-footer .site-link:focus-visible { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.77 0.185 158 / 50%); border-radius: 8px; }
+.site-footer .about { margin-top: 4px; max-width: 320px; font-size: 12px; line-height: 1.625; color: var(--muted-foreground); }
+.site-footer .links-title {
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em;
+  color: var(--muted-foreground);
+}
+.site-footer .links-title .slash { margin-right: 4px; color: oklch(0.77 0.185 158 / 60%); }
+.site-footer .links { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.site-footer .links a {
+  display: flex; min-height: 44px; align-items: center;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--muted-foreground);
+  transition: color 150ms ease;
+  outline: none;
+}
+.site-footer .links a:hover { color: var(--primary); }
+.site-footer .links a:focus-visible { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.77 0.185 158 / 50%); border-radius: 8px; }
+.site-footer .links .arrow { margin-right: 6px; color: oklch(0.77 0.185 158 / 50%); }
+.site-footer .bottom { border-top: 1px solid oklch(0.275 0.02 168 / 50%); }
+.site-footer .bottom p {
+  margin-inline: auto; width: 100%; max-width: 1152px;
+  padding: 16px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.02em;
+  color: var(--muted-foreground);
+}
+@media (min-width: 640px) { .site-footer .bottom p { padding-inline: 24px; } }
+
+/* ============================================================
+   14. Анимации
+   ============================================================ */
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.55; }
+  80%, 100% { transform: scale(1.55); opacity: 0; }
+}
+@keyframes soft-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.fade-up { opacity: 0; animation: fadeUp 450ms ease forwards; }
+
+[data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 500ms ease, transform 500ms ease; }
+[data-reveal].revealed { opacity: 1; transform: none; }
+[data-reveal="mockup"] { transform: translateY(32px); transition-duration: 550ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .fade-up { opacity: 1; animation: none; }
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .hero .cursor, .power-ring, .sidebar .core-box .dot { animation: none; }
+  .window { transform: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SVG-спрайт (иконки lucide, пути 1:1)
+     ============================================================ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="m3-logo" viewBox="0 0 48 48">
+    <defs>
+      <linearGradient id="m3-logo-grad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#00ff88"/><stop offset="1" stop-color="#00cc6a"/>
+      </linearGradient>
+    </defs>
+    <rect x="3.5" y="3.5" width="41" height="41" rx="11" fill="#0c1410" stroke="url(#m3-logo-grad)" stroke-width="2"/>
+    <path d="M12 30V17.5L18 25L24 17.5V30" stroke="#00ff88" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="26.5" y="30" font-size="16" font-weight="700" fill="#eafff3" font-family="JetBrains Mono, ui-monospace, monospace">3</text>
+    <path d="M10 36H38" stroke="#00cc6a" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="13" cy="36" r="2.1" fill="#00ff88"/>
+  </symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></symbol>
+  <symbol id="i-package" viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol>
+  <symbol id="i-file-archive" viewBox="0 0 24 24"><path d="M10 12v-1"/><path d="M10 18v-2"/><path d="M10 7V6"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M15.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v16a2 2 0 0 0 .274 1.01"/><circle cx="10" cy="20" r="2"/></symbol>
+  <symbol id="i-shield-alert" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></symbol>
+  <symbol id="i-radar" viewBox="0 0 24 24"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/></symbol>
+  <symbol id="i-settings-2" viewBox="0 0 24 24"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
+  <symbol id="i-split" viewBox="0 0 24 24"><path d="M8 19H5c-1 0-2-1-2-2V7c0-1 1-2 2-2h3"/><path d="M16 5h3c1 0 2 1 2 2v10c0 1-1 2-2 2h-3"/><line x1="12" x2="12" y1="4" y2="20"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-clipboard-paste" viewBox="0 0 24 24"><path d="M11 14h10"/><path d="M16 4h2a2 2 0 0 1 2 2v1.344"/><path d="m17 18 4-4-4-4"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 1.793-1.113"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-languages" viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></symbol>
+  <symbol id="i-app-window" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 4v4"/><path d="M2 8h20"/><path d="M6 4v4"/></symbol>
+  <symbol id="i-code-xml" viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M12 19h8"/><path d="m4 17 6-6-6-6"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+</svg>
+
+<!-- ============================================================
+     Шапка
+     ============================================================ -->
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/" aria-label="M3tr0VPN — на главную">
+      <svg class="logo-svg" viewBox="0 0 48 48" role="img" aria-label="Логотип M3tr0VPN"><use href="#m3-logo"/></svg>
+      <span class="wordmark">M3tr0<b>VPN</b></span>
+    </a>
+
+    <nav class="header-nav" aria-label="Разделы страницы">
+      <a href="#features"><span class="prefix" aria-hidden="true">./</span>Возможности</a>
+      <a href="#quick-start"><span class="prefix" aria-hidden="true">./</span>Как начать</a>
+      <a href="#download"><span class="prefix" aria-hidden="true">./</span>Скачать</a>
+      <a href="#faq"><span class="prefix" aria-hidden="true">./</span>FAQ</a>
+    </nav>
+
+    <a class="github-btn" href="https://github.com/dm3tr-0/M3tr0VPN" target="_blank" rel="noopener noreferrer">
+      <svg class="icon"><use href="#i-github"/></svg>
+      <span class="label">GitHub</span>
+      <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">GitHub (открывается в новой вкладке)</span>
+    </a>
+  </div>
+</header>
+
+<main>
+  <!-- ============================================================
+       Hero
+       ============================================================ -->
+  <section class="hero">
+    <div class="neon-blob" aria-hidden="true"></div>
+
+    <div class="inner container">
+      <p class="term-badge fade-up" style="animation-duration:400ms">
+        <span class="prompt" aria-hidden="true">~ $</span>
+        m3tr0vpn --download
+        <span class="cursor" aria-hidden="true">▌</span>
+      </p>
+
+      <h1 class="fade-up" style="animation-delay:80ms">
+        Простой VPN.
+        <br>
+        <span class="accent">Серьёзное ядро.</span>
+      </h1>
+
+      <p class="sub fade-up" style="animation-delay:160ms">
+        M3tr0VPN — клиент на ядре Xray с раздельным туннелированием, которое
+        настраивается в два клика.
+      </p>
+
+      <div class="cta fade-up" style="animation-delay:240ms">
+        <a class="btn btn-primary btn-windows" href="/downloads/M3tr0VPN-1.1.1-windows-x64.zip" download>
+          <svg class="icon"><use href="#i-download"/></svg>
+          Скачать для Windows
+        </a>
+        <a class="btn btn-primary btn-windows" href="/downloads/M3tr0VPN-1.1.1-linux-x86_64.AppImage" download>
+          <svg class="icon"><use href="#i-download"/></svg>
+Linux (AppImage)
+        </a>
+        <a class="btn btn-primary btn-windows href="/downloads/M3tr0VPN-1.1.1-source.zip" download>
+          <svg class="icon"><use href="#i-download"/></svg>
+<svg class="icon"><use href="#i-file-archive"/></svg>
+Исходники
+        </a>
+      </div>
+
+      <ul class="chips fade-up" style="animation-delay:340ms" aria-label="Ключевые факты о сборке">
+        <li><svg class="icon"><use href="#i-monitor"/></svg>Windows 10/11 · x64</li>
+        <li><svg class="icon"><use href="#i-package"/></svg>портативная — без установки</li>
+        <li><svg class="icon"><use href="#i-cpu"/></svg>Xray + sing-box</li>
+      </ul>
+
+      <p class="smartscreen fade-up" style="animation-delay:420ms">
+        <svg class="icon"><use href="#i-shield-alert"/></svg>
+        Windows SmartScreen может предупредить о неподписанном exe —
+        «Подробнее → Выполнить в любом случае».
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Мокап окна приложения
+       ============================================================ -->
+  <section class="app-mockup" aria-label="Интерфейс приложения">
+    <div class="container">
+      <figure data-reveal="mockup" role="img" aria-label="Окно приложения M3tr0VPN: слева меню «Статус», «Туннелирование» и «Настройки», в центре — большая кнопка питания со статусом «Защищено», плитки загрузки, отдачи и сессии, справа — список серверов по подпискам.">
+        <div class="window-persp">
+          <div class="window" aria-hidden="true">
+
+            <!-- титлбар -->
+            <div class="titlebar">
+              <svg class="logo-svg" viewBox="0 0 48 48"><use href="#m3-logo"/></svg>
+              <p class="title">M3tr0<b>VPN</b><span class="extra">— Amsterdam #1</span></p>
+
+              <span class="status-chip">
+                <svg class="icon"><use href="#i-wifi"/></svg>
+                <span class="txt">Защищено</span>
+              </span>
+
+              <span class="lang">
+                <span class="ru">RU</span>
+                <span class="en">EN</span>
+              </span>
+
+              <span class="win-btns">
+                <span><svg class="icon"><use href="#i-minus"/></svg></span>
+                <span><svg class="icon small"><use href="#i-copy"/></svg></span>
+                <span><svg class="icon"><use href="#i-x"/></svg></span>
+              </span>
+              <span class="traffic" aria-hidden="true">
+                <span class="amber"></span>
+                <span class="green"></span>
+                <span class="red"></span>
+              </span>
+            </div>
+
+            <!-- тело окна -->
+            <div class="window-body">
+              <!-- сайдбар -->
+              <nav class="sidebar">
+                <p class="dir">~/m3tr0</p>
+                <ul>
+                  <li>
+                    <span class="active">
+                      <svg class="icon"><use href="#i-gauge"/></svg>
+                      Статус
+                      <span class="dot"></span>
+                    </span>
+                  </li>
+                  <li>
+                    <span>
+                      <svg class="icon"><use href="#i-split"/></svg>
+                      Туннелирование
+                    </span>
+                  </li>
+                  <li>
+                    <span>
+                      <svg class="icon"><use href="#i-settings-2"/></svg>
+                      Настройки
+                    </span>
+                  </li>
+                </ul>
+
+                <div class="core-box">
+                  <p><span class="dot"></span>xray-core 26.3.27</p>
+                  <p>ядро запущено</p>
+                </div>
+              </nav>
+
+              <!-- центр -->
+              <div class="center">
+                <div class="top">
+                  <span class="power-wrap">
+                    <span class="power-ring"></span>
+                    <span class="power-btn">
+                      <svg class="icon"><use href="#i-power"/></svg>
+                    </span>
+                  </span>
+
+                  <span class="status-block">
+                    <span class="state">Защищено</span>
+                    <span class="route">через <b>Amsterdam #1</b> · <i>VLESS</i> · Системный прокси</span>
+                    <span class="hint">Готово · трафик шифруется</span>
+                  </span>
+                </div>
+
+                <!-- плитки -->
+                <div class="tiles">
+                  <div class="tile">
+                    <div class="head">
+                      <svg class="icon"><use href="#i-arrow-down"/></svg>
+                      <span>Загрузка</span>
+                    </div>
+                    <p class="val">84.2<small>Мбит/с</small></p>
+                  </div>
+                  <div class="tile">
+                    <div class="head">
+                      <svg class="icon accent"><use href="#i-arrow-up"/></svg>
+                      <span>Отдача</span>
+                    </div>
+                    <p class="val">23.7<small>Мбит/с</small></p>
+                  </div>
+                  <div class="tile">
+                    <div class="head">
+                      <svg class="icon"><use href="#i-clock"/></svg>
+                      <span>Сессия</span>
+                    </div>
+                    <p class="val">01:42:05</p>
+                  </div>
+                </div>
+
+                <!-- мини-график скорости -->
+                <div class="chart-box">
+                  <span class="head">
+                    Скорость в реальном времени
+                    <span class="legend"><span class="down">↓ 84.2</span> <span class="up">↑ 23.7</span> Мбит/с</span>
+                  </span>
+                  <svg viewBox="0 0 300 48" preserveAspectRatio="none" focusable="false">
+                    <defs>
+                      <linearGradient id="m3-mock-area" x1="0" y1="0" x2="0" y2="1">
+                        <stop stop-color="#00cc6a" stop-opacity="0.28"/>
+                        <stop offset="1" stop-color="#00cc6a" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,38 C20,36 30,30 45,31 S70,40 85,34 S115,18 130,22 S160,30 175,20 S205,10 220,16 S250,26 265,14 S285,20 300,12 L300,48 L0,48 Z" fill="url(#m3-mock-area)"/>
+                    <path d="M0,38 C20,36 30,30 45,31 S70,40 85,34 S115,18 130,22 S160,30 175,20 S205,10 220,16 S250,26 265,14 S285,20 300,12" stroke="#00cc6a" stroke-width="1.6" fill="none"/>
+                    <path d="M0,44 C25,43 40,40 60,41 S100,44 120,42 S160,36 180,38 S220,42 245,39 S275,42 300,38" stroke="#4ae3ff" stroke-opacity="0.75" stroke-width="1.3" fill="none"/>
+                  </svg>
+                </div>
+
+                <!-- мини-журнал ядра -->
+                <div class="core-log">
+                  <p><span class="time">[21:04:12]</span><span class="line-ok">xray-core 26.3.27 · старт</span></p>
+                  <p><span class="time">[21:04:13]</span><span class="line-dim">socks://127.0.0.1:10808 · inbound готов</span></p>
+                  <p class="hide-sm"><span class="time">[21:04:14]</span><span class="line-dim">vless+reality → nl1.dm3tr0.ru:443 · handshake ok</span></p>
+                </div>
+              </div>
+
+              <!-- правая панель: подписки -->
+              <aside class="right-panel">
+                <div class="head">
+                  <span class="t">Подписки</span>
+                  <span class="count"><svg class="icon"><use href="#i-radar"/></svg>6</span>
+                </div>
+
+                <div class="list">
+                  <div class="group">
+                    <p class="g-name">M3tr0 Premium</p>
+                    <ul>
+                      <li class="server current">
+                        <span class="country-chip">NL</span>
+                        <span class="info">
+                          <span class="row">
+                            <span class="name">Amsterdam #1</span>
+                            <svg class="icon check"><use href="#i-check"/></svg>
+                          </span>
+                          <span class="ping">38 мс</span>
+                        </span>
+                        <span class="protocol-chip vless">VLESS</span>
+                      </li>
+                      <li class="server">
+                        <span class="country-chip">DE</span>
+                        <span class="info">
+                          <span class="row"><span class="name">Frankfurt #2</span></span>
+                          <span class="ping">52 мс</span>
+                        </span>
+                        <span class="protocol-chip vmess">VMess</span>
+                      </li>
+                      <li class="server">
+                        <span class="country-chip">FI</span>
+                        <span class="info">
+                          <span class="row"><span class="name">Helsinki #3</span></span>
+                          <span class="ping">31 мс</span>
+                        </span>
+                        <span class="protocol-chip trojan">Trojan</span>
+                      </li>
+                      <li class="server">
+                        <span class="country-chip">SE</span>
+                        <span class="info">
+                          <span class="row"><span class="name">Stockholm #4</span></span>
+                          <span class="ping">44 мс</span>
+                        </span>
+                        <span class="protocol-chip vless">VLESS</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="group">
+                    <p class="g-name">M3tr0 Free</p>
+                    <ul>
+                      <li class="server">
+                        <span class="country-chip">NL</span>
+                        <span class="info">
+                          <span class="row"><span class="name">Free Amsterdam</span></span>
+                          <span class="ping">95 мс</span>
+                        </span>
+                        <span class="protocol-chip ss">SS</span>
+                      </li>
+                      <li class="server">
+                        <span class="country-chip">FR</span>
+                        <span class="info">
+                          <span class="row"><span class="name">Free Paris</span></span>
+                          <span class="ping">88 мс</span>
+                        </span>
+                        <span class="protocol-chip vmess">VMess</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="add">
+                  <span><svg class="icon"><use href="#i-plus"/></svg>Добавить сервер</span>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+
+        <figcaption class="figcaption">
+          <span class="slash" aria-hidden="true">//</span>
+          три вкладки
+          и ничего лишнего
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Возможности
+       ============================================================ -->
+  <section class="section features" id="features">
+    <div class="container">
+      <div class="section-heading">
+        <p class="kicker">// features --list</p>
+        <h2>Всё, что нужно. Ничего лишнего.</h2>
+        <p class="sub">Возможности, ради которых стоит поставить VPN-клиент, — без вкладок, о которых вы не просили.</p>
+      </div>
+
+      <div class="grid">
+        <article class="card-m3tr0 feature-card" data-reveal>
+          <span class="icon-box"><svg class="icon"><use href="#i-split"/></svg></span>
+          <h3>Раздельное туннелирование без боли</h3>
+          <p>Список «Выбранное»: пустой — и весь трафик идёт через VPN. Добавьте домен — через VPN пойдёт только он. А «Исключения по приложениям» выпускают, например, Steam напрямую — VPN для него не нужен.</p>
+          <p class="code">selected: [ ] → весь трафик через VPN</p>
+        </article>
+
+        <article class="card-m3tr0 feature-card" data-reveal style="transition-delay:80ms">
+          <span class="icon-box"><svg class="icon"><use href="#i-cpu"/></svg></span>
+          <h3>Поддерживаемые протоколы</h3>
+          <p>VLESS + Reality, VMess, Trojan, Shadowsocks, Hysteria2, TUIC, WireGuard и AmneziaWG. Xray. Подписка из 3x-ui подтягивается корректно.</p>
+<p></p>
+<p></p>
+          <p class="code">xray-core 26.3.27 · bundled</p>
+        </article>
+
+        <article class="card-m3tr0 feature-card" data-reveal style="transition-delay:160ms">
+          <span class="icon-box"><svg class="icon"><use href="#i-layers"/></svg></span>
+          <h3>Два режима работы</h3>
+          <p>Системный прокси — включается сразу и не требует прав администратора. TUN-адаптер — заворачивает весь трафик без исключений, включая игры, но попросит повышение прав (UAC).</p>
+          <p class="code">proxy | tun</p>
+        </article>
+
+        <article class="card-m3tr0 feature-card" data-reveal>
+          <span class="icon-box"><svg class="icon"><use href="#i-clipboard-paste"/></svg></span>
+          <h3>Импорт за секунды</h3>
+          <p>Вставьте vless://-ссылку или URL подписки — сервер появится в списке. Скопировали QR-код? M3tr0VPN распознает его прямо из буфера обмена.</p>
+          <p class="code">vless://… → ✓</p>
+        </article>
+
+        <article class="card-m3tr0 feature-card" data-reveal style="transition-delay:80ms">
+          <span class="icon-box"><svg class="icon"><use href="#i-languages"/></svg></span>
+          <h3>RU / EN + тёмная тема Incy</h3>
+          <p>Клиент двуязычный: русский и английский переключаются в один клик — сам интерфейс не хуже локализации. Тёмно-зелёная тема Incy уже включена и бережёт глаза.</p>
+          <p class="code">lang: ru | en</p>
+        </article>
+
+        <article class="card-m3tr0 feature-card" data-reveal style="transition-delay:160ms">
+          <span class="icon-box"><svg class="icon"><use href="#i-eye"/></svg></span>
+          <h3>Прозрачность</h3>
+          <p>Конфиг Xray можно открыть, посмотреть и выгрузить в JSON. Журнал ядра — перед глазами, без фильтров. Никаких скрытых телеметрий и «отстуков на левые сервера».</p>
+          <p class="code">config.json · journal · 0 telemetry</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Быстрый старт
+       ============================================================ -->
+  <section class="section quick-start" id="quick-start">
+    <div class="container">
+      <div class="section-heading">
+        <p class="kicker">// quick-start --run</p>
+        <h2>Три шага до защищённого интернета</h2>
+        <p class="sub">От архива до работающего VPN — меньше минуты.</p>
+      </div>
+
+      <ol>
+        <li class="card-m3tr0 step-card" data-reveal>
+          <div class="head">
+            <span class="num">[01]</span>
+            <span class="icon-box"><svg class="icon"><use href="#i-package"/></svg></span>
+          </div>
+          <h3>Распакуй и запусти</h3>
+          <p>Распакуй архив и запусти M3tr0VPN.exe. Сборка портативная: никаких установщиков, следов в системе и перезагрузок.</p>
+          <span class="connector" aria-hidden="true"></span>
+        </li>
+
+        <li class="card-m3tr0 step-card" data-reveal style="transition-delay:100ms">
+          <div class="head">
+            <span class="num">[02]</span>
+            <span class="icon-box"><svg class="icon"><use href="#i-clipboard-paste"/></svg></span>
+          </div>
+          <h3>Добавь сервер</h3>
+          <p>Вставь ссылку vless://… или URL подписки — или просто скопируй QR-код, M3tr0VPN прочитает его из буфера обмена.</p>
+          <span class="connector" aria-hidden="true"></span>
+        </li>
+
+        <li class="card-m3tr0 step-card" data-reveal style="transition-delay:200ms">
+          <div class="head">
+            <span class="num">[03]</span>
+            <span class="icon-box"><svg class="icon"><use href="#i-power"/></svg></span>
+          </div>
+          <h3>Нажми большую кнопку</h3>
+          <p>Одна зелёная кнопка — и интернет защищён. Дальше приложение просто работает в трее.</p>
+          <span class="connector" aria-hidden="true"></span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Скачать
+       ============================================================ -->
+  <section class="section downloads" id="download">
+    <div class="container">
+      <div class="section-heading">
+        <p class="kicker">// download --get</p>
+        <h2>Скачать M3tr0VPN</h2>
+        <p class="sub">Портативные сборки с ядрами Xray и sing-box внутри — распаковал и пользуешься.</p>
+      </div>
+
+      <div class="grid">
+        <article class="card-m3tr0 dl-card featured" data-reveal>
+          <span class="badge">рекомендуем</span>
+          <div class="head">
+            <span class="icon-box"><svg class="icon"><use href="#i-app-window"/></svg></span>
+            <h3>Windows</h3>
+          </div>
+          <p class="file">M3tr0VPN-1.1.1-windows-x64.zip</p>
+          <p class="note">ZIP · ~200 МБ · распакуй и запусти</p>
+          <a class="btn btn-primary" href="/downloads/M3tr0VPN-1.1.1-windows-x64.zip" download>
+            <svg class="icon"><use href="#i-download"/></svg>
+            Скачать
+          </a>
+        </article>
+
+        <article class="card-m3tr0 dl-card" data-reveal style="transition-delay:80ms">
+          <div class="head">
+            <span class="icon-box"><svg class="icon"><use href="#i-terminal"/></svg></span>
+            <h3>Linux</h3>
+          </div>
+          <p class="file">M3tr0VPN-1.1.1-linux-x86_64.AppImage</p>
+          <p class="note">AppImage · ~170 МБ · chmod +x и запуск</p>
+          <a class="btn btn-primary" href="/downloads/M3tr0VPN-1.1.1-linux-x86_64.AppImage" download>
+            <svg class="icon"><use href="#i-download"/></svg>
+            Скачать
+          </a>
+        </article>
+
+        <article class="card-m3tr0 dl-card" data-reveal style="transition-delay:160ms">
+          <div class="head">
+            <span class="icon-box"><svg class="icon"><use href="#i-code-xml"/></svg></span>
+            <h3>Исходники</h3>
+          </div>
+          <p class="file">M3tr0VPN-1.1.1-source.zip</p>
+          <p class="note">Electron + генераторы конфигов Xray и sing-box</p>
+          <a class="btn btn-primary" href="/downloads/M3tr0VPN-1.1.1-source.zip" download>
+            <svg class="icon"><use href="#i-download"/></svg>
+            Скачать
+          </a>
+        </article>
+      </div>
+
+      <p class="note" data-reveal>
+        <svg class="icon"><use href="#i-info"/></svg>
+        <span>
+          Внутри архива — ядра Xray 26.3.27 и sing-box 1.13.16-extended
+          (AmneziaWG): xray.exe, sing-box.exe, wintun.dll, geoip/geosite.
+          Антивирусы иногда ругаются на неподписанные VPN-клиенты — это
+          нормально для open-source сборок.
+        </span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FAQ
+       ============================================================ -->
+  <section class="section faq" id="faq">
+    <div class="container inner">
+      <div class="section-heading">
+        <p class="kicker">// faq --ask</p>
+        <h2>Вопросы и ответы</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="card-m3tr0 faq-item">
+          <button class="faq-trigger" type="button" aria-expanded="false">
+            <span class="q" aria-hidden="true">?</span>
+            Чем M3tr0VPN отличается от v2rayN?
+            <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+          </button>
+          <div class="faq-panel">
+            <div><p>Ядра те же, что у v2rayN — Xray-core и sing-box. Разница в философии: v2rayN — швейцарский нож с тридцатью вкладками и настройками на любой вкус, M3tr0VPN — три экрана: статус, туннелирование, настройки. Подключение — одна большая кнопка, раздельное туннелирование — в два клика. Для тех, кому нужен «просто работающий VPN», а не пульт управления самолётом.</p></div>
+          </div>
+        </div>
+
+        <div class="card-m3tr0 faq-item">
+          <button class="faq-trigger" type="button" aria-expanded="false">
+            <span class="q" aria-hidden="true">?</span>
+            Что лучше — системный прокси или TUN?
+            <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+          </button>
+          <div class="faq-panel">
+            <div><p>Системный прокси включается мгновенно и без прав администратора — его достаточно браузеру, мессенджерам и большинству программ. TUN-адаптер перехватывает весь трафик целиком, включая игры и приложения, которые не умеют работать через прокси, но требует повышения прав (UAC). Начните с прокси — а если что-то «не туннелируется», включите TUN.</p></div>
+          </div>
+        </div>
+
+        <div class="card-m3tr0 faq-item">
+          <button class="faq-trigger" type="button" aria-expanded="false">
+            <span class="q" aria-hidden="true">?</span>
+            Это безопасно?
+            <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+          </button>
+          <div class="faq-panel">
+            <div><p>Ядра — официальный Xray-core с GitHub и sing-box-extended (форк с AmneziaWG), в комплекте с открытой сборкой. Конфиг генерируется локально на вашем компьютере, его можно посмотреть и выгрузить в любой момент. Журнал ядра открыт. Никакой телеметрии и скрытой аналитики — ни в клиенте, ни в ядре.</p></div>
+          </div>
+        </div>
+
+        <div class="card-m3tr0 faq-item">
+          <button class="faq-trigger" type="button" aria-expanded="false">
+            <span class="q" aria-hidden="true">?</span>
+            Мой провайдер что-то увидит?
+            <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+          </button>
+          <div class="faq-panel">
+            <div><p>В режиме TUN весь трафик уходит в шифрованный туннель до выбранного сервера: провайдер видит только само соединение с его адресом, но не содержимое и не конечные сайты. Важно понимать: VPN-сервер видит ваш трафик — поэтому выбирайте проверенные серверы и подписки, которым доверяете.</p></div>
+          </div>
+        </div>
+
+        <div class="card-m3tr0 faq-item">
+          <button class="faq-trigger" type="button" aria-expanded="false">
+            <span class="q" aria-hidden="true">?</span>
+            Когда версия для Android?
+            <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+          </button>
+          <div class="faq-panel">
+            <div><p>В разработке. Десктопные сборки Windows и Linux уже доступны на этой странице, а новости о Android-версии — на dm3tr0.ru.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============================================================
+     Футер
+     ============================================================ -->
+<footer class="site-footer">
+  <div class="top">
+    <div>
+      <p class="brand-row">
+        <svg class="logo-svg" viewBox="0 0 48 48" role="img" aria-label="Логотип M3tr0VPN"><use href="#m3-logo"/></svg>
+        <span class="wordmark">M3tr0<b>VPN</b></span>
+      </p>
+      <a class="site-link terminal-chip" href="https://dm3tr0.ru" target="_blank" rel="noopener noreferrer">dm3tr0.ru</a>
+      <p class="about">VPN-клиент для тех, кто хочет просто нажать кнопку. Ядро — Xray-core.</p>
+    </div>
+
+    <nav aria-label="Полезные ссылки">
+      <p class="links-title terminal-chip"><span class="slash" aria-hidden="true">//</span>links</p>
+      <ul class="links">
+        <li><a href="https://dm3tr0.ru" target="_blank" rel="noopener noreferrer"><span class="arrow" aria-hidden="true">→</span>dm3tr0.ru</a></li>
+        <li><a href="https://github.com/XTLS/Xray-core" target="_blank" rel="noopener noreferrer"><span class="arrow" aria-hidden="true">→</span>Xray-core</a></li>
+        <li><a href="https://github.com/2dust/v2rayN" target="_blank" rel="noopener noreferrer"><span class="arrow" aria-hidden="true">→</span>вдохновлены v2rayN</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="bottom">
+    <p class="terminal-chip">© 2026 dm3tr0 · M3tr0VPN v1.1.1</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Появление секций при скролле (аналог framer-motion whileInView) ---------- */
+  var revealEls = document.querySelectorAll('[data-reveal]');
+  if (!reduce && 'IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('revealed'); });
+  }
+
+  /* ---------- FAQ-аккордеон (single collapsible, как Radix) ---------- */
+  var items = Array.prototype.slice.call(document.querySelectorAll('.faq-item'));
+  items.forEach(function (item) {
+    var trigger = item.querySelector('.faq-trigger');
+    trigger.addEventListener('click', function () {
+      var wasOpen = item.classList.contains('open');
+      items.forEach(function (other) {
+        other.classList.remove('open');
+        other.querySelector('.faq-trigger').setAttribute('aria-expanded', 'false');
+      });
+      if (!wasOpen) {
+        item.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* ---------- Плавный скролл по якорям (fallback для старых браузеров) ---------- */
+  if (!reduce && !('scrollBehavior' in document.documentElement.style)) {
+    document.querySelectorAll('a[href^="#"]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          window.scrollTo(0, target.getBoundingClientRect().top + window.pageYOffset - 96);
+        }
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
