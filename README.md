@@ -33,8 +33,7 @@
 - **Shadowsocks**
 - **Hysteria2**
 - **TUIC**
-- **WireGuard**
-- **AmneziaWG**
+- **Amnezia Wireguard**
 
 > Ядро: `xray-core` · Подписка из 3x-ui подтягивается корректно
 
