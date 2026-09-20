@@ -50,6 +50,6 @@
 
 ## 🔗 Ссылки
 
-- 🌐 [dm3tr0.ru](https://dm3tr0.ru)
-- 🔧 [Xray-core](https://github.com/XTLS/Xray-core)
-- 💡 [Вдохновлен v2rayN](https://github.com/2dust/v2rayN)
+- [dm3tr0.ru](https://dm3tr0.ru)
+- [Xray-core](https://github.com/XTLS/Xray-core)
+- [Вдохновлен v2rayN](https://github.com/2dust/v2rayN)
