@@ -1,1 +1,1 @@
-vless://988044da-080a-4ba3-aeff-7b6b0aaa15fc@185.86.147.184:9449?flow=xtls-rprx-vision&type=raw&security=reality&fp=firefox&sni=passport.yandex.ru&pbk=SsPslLCfw2CGDmCs17gTLRSUOsOfv0KgnuLnkyTqCzA&sid=62002c0a685ac208&spx=БелыеСписки+Germany1
+vless%3A%2F%2F988044da-080a-4ba3-aeff-7b6b0aaa15fc%40185.86.147.184%3A9449%3Fflow%3Dxtls-rprx-vision%26type%3Draw%26security%3Dreality%26fp%3Dfirefox%26sni%3Dpassport.yandex.ru%26pbk%3DSsPslLCfw2CGDmCs17gTLRSUOsOfv0KgnuLnkyTqCzA%26sid%3D62002c0a685ac208%26spx%3DБелыеСписки%2BGermany1
