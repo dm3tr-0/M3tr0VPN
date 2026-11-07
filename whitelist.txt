@@ -1,1 +1,1 @@
-vless://bb190cdb-82ae-4212-b6cd-8ae9e6b768dd@188.225.78.228:443?flow=xtls-rprx-vision&type=raw&security=reality&fp=firefox&sni=music.yandex.ru&pbk=aV_BHCeZ30y4-5rpUIHaWHMYAgogLsw4AE06Rw2X4WE&sid=e202a94ad1711af2#%F0%9F%87%A9%F0%9F%87%AA+%D0%91%D0%B5%D0%BB%D1%8B%D0%B5%D0%A1%D0%BF%D0%B8%D1%81%D0%BA%D0%B8Germany
+vless://988044da-080a-4ba3-aeff-7b6b0aaa15fc@185.86.147.184:9449?flow=xtls-rprx-vision&type=raw&security=reality&fp=firefox&sni=passport.yandex.ru&pbk=SsPslLCfw2CGDmCs17gTLRSUOsOfv0KgnuLnkyTqCzA&sid=62002c0a685ac208&spx=БелыеСписки+Germany1
